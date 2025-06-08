@@ -6,13 +6,13 @@ GitHub Copilot Agent × Claude × Codex を連携させた「自己完結型AI�
 
 ## 📦 同梱ファイル一覧
 
-| パス | 内容 |
-|------|------|
-| `codex-ultimate-prompt.md` | ✅ Codex用：完全自動構築プロンプト |
-| `docs/` | Codex実行ガイド・実行ログ・AI評価指標など |
-| `.github/workflows/ci.yml` | Node/Python/PHP対応のCI構成 |
-| `scripts/gen-ai-report.sh` | Claude/Copilot向け評価レポート集計 |
-| `feedback/claude-tasks/_template.md` | Claude改善提案テンプレート |
+| パス                                   | 内容                                       |
+| ------------------------------------ | ---------------------------------------- |
+| `codex-ultimate-prompt.md`           | ✅ Codex用：完全自動構築プロンプト（コードブロック付きでファイル展開）   |
+| `docs/`                              | Codex実行ガイド・実行ログ・AI評価指標など                 |
+| `.github/workflows/ci.yml`           | Node/Python/PHP対応のCI構成（週次・日次・pushトリガー対応） |
+| `scripts/`                           | Claude解析・レポート作成・ログ管理のスクリプト群              |
+| `feedback/claude-tasks/_template.md` | Claude改善提案テンプレート                         |
 
 ---
 
@@ -24,9 +24,9 @@ GitHub Copilot Agent × Claude × Codex を連携させた「自己完結型AI�
 
 ### 2. Codexに投入！
 
-- Codex Web UI を開き、`codex-ultimate-prompt.md` を読み込み
-- 「Start Task」で実行
-- `.github/`, `docs/`, `feedback/`, `scripts/` などが自動生成されます
+* Codex Web UI を開き、`codex-ultimate-prompt.md` を読み込み
+* 「Start Task」で実行
+* `.github/`, `docs/`, `feedback/`, `scripts/` などが自動生成されます
 
 ---
 
@@ -34,36 +34,42 @@ GitHub Copilot Agent × Claude × Codex を連携させた「自己完結型AI�
 
 Claudeには `feedback/claude-tasks/_template.md` を渡し、改善提案の際には以下を含めるよう指示：
 
-- **対象ファイル名**
-- **行番号 or セクション**
-- **改善カテゴリ + 重要度**
+* **対象ファイル名**
+* **行番号 or セクション**
+* **改善カテゴリ + 重要度**
+
+Claudeが生成したフィードバックは、`scripts/parse-claude-feedback.py` により自動解析され、`tasks/` ディレクトリに JSON タスク化されます。
 
 ---
 
 ## 🛠 GitHub Actions / CI構成
 
-- Lint / Test / Deploy のトリガーを自動構成（Node.js, Python, PHP）
-- `scripts/gen-ai-report.sh` は **毎週月曜3時** にレポートを生成（要 schedule 設定）
+* Lint / Test / Deploy のトリガーを自動構成（Node.js, Python, PHP）
+* `gen-ai-report.sh` は **毎週月曜3時** にレポート生成
+* `archive-task-log.sh` は **毎日0時** にログ整理
+* `parse-claude-feedback.py` は Claude 提案の push 時に実行
 
 ---
 
 ## 📊 評価と記録の仕組み
 
-| ファイル | 内容 |
-|---------|------|
-| `docs/task-log.md` | タスク実行履歴（自動更新） |
+| ファイル                                | 内容                                |
+| ----------------------------------- | --------------------------------- |
+| `docs/task-log.md`                  | タスク実行履歴（最大50件、超過でアーカイブ）           |
 | `docs/metrics/ai-review-metrics.md` | Claude / Copilot Agent のパフォーマンス記録 |
-| `docs/logs/` | 古いタスクログの自動アーカイブ先 |
+| `docs/logs/`                        | 古いタスクログの自動アーカイブ先                  |
 
 ---
 
 ## 🔐 ブランチ保護の推奨設定
 
-Codexは以下の `main` 保護設定を自動で行います：
+Codexは `main` ブランチに以下の保護設定を提案します（手動で `gh api` 実行）：
 
-- ✅ CI必須
-- ✅ 1件以上のレビュー
-- ✅ 管理者にも保護適用
+* ✅ CI必須
+* ✅ 1件以上のレビュー
+* ✅ 管理者にも保護適用
+
+詳細なコマンドは `docs/codex-usage-guide.md` に記載されています。
 
 ---
 
