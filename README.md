@@ -24,7 +24,7 @@ GitHub Copilot Agent × Claude × Codex を連携させた「自己完結型AI�
 
 ### 2. Codexに投入！
 
-- Codex Web UI を開き、`002_codex-ultimate-prompt.md` を読み込み
+- Codex Web UI を開き、`codex-ultimate-prompt.md` を読み込み
 - 「Start Task」で実行
 - `.github/`, `docs/`, `feedback/`, `scripts/` などが自動生成されます
 
