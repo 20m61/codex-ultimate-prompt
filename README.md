@@ -8,7 +8,7 @@ GitHub Copilot Agent × Claude × Codex を連携させた「自己完結型AI�
 
 | パス | 内容 |
 |------|------|
-| `002_codex-ultimate-prompt.md` | ✅ Codex用：完全自動構築プロンプト |
+| `codex-ultimate-prompt.md` | ✅ Codex用：完全自動構築プロンプト |
 | `docs/` | Codex実行ガイド・実行ログ・AI評価指標など |
 | `.github/workflows/ci.yml` | Node/Python/PHP対応のCI構成 |
 | `scripts/gen-ai-report.sh` | Claude/Copilot向け評価レポート集計 |
