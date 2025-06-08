@@ -1,13 +1,13 @@
-# 🎯 タスク: AI自律開発ループ環境の完全構築目的
+# 🎯 タスク: AI 自律開発ループ環境の完全構築目的
 
-Claude・Copilot Agent・Codex が連携して、継続的なタスク生成、PRレビュー、フィードバック蓄積、評価指標出力、CI/CD対応までを自律的にループさせる環境を完全構築します。
+Claude・Copilot Agent・Codex が連携して、継続的なタスク生成、PR レビュー、フィードバック蓄積、評価指標出力、CI/CD 対応までを自律的にループさせる環境を完全構築します。
 
 ## 📦 含まれる内容
 
-* GitHub Actions ワークフロー
-* Claude との改善提案テンプレート
-* Codex が処理するスクリプト一式
-* `task-log` 管理・評価メトリクス
+- GitHub Actions ワークフロー
+- Claude との改善提案テンプレート
+- Codex が処理するスクリプト一式
+- `task-log` 管理・評価メトリクス
 
 ---
 
@@ -15,8 +15,8 @@ Claude・Copilot Agent・Codex が連携して、継続的なタスク生成、P
 
 ### 1. セーフインストール対応（上書き防止）
 
-* 既存の `.github/`, `docs/`, `feedback/`, `scripts/` ディレクトリがある場合、上書き前に `.bak` 拡張子付きでバックアップ
-* ファイルが未変更の場合はスキップ
+- 既存の `.github/`, `docs/`, `feedback/`, `scripts/` ディレクトリがある場合、上書き前に `.bak` 拡張子付きでバックアップ
+- ファイルが未変更の場合はスキップ
 
 ### 2. ファイル展開（コードブロック付きで記述）
 
@@ -31,7 +31,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '0 18 * * 0'  # 毎週月曜3:00 JST (UTC 09:00)
+    - cron: '0 18 * * 0' # 毎週月曜3:00 JST (UTC 09:00)
 
 jobs:
   build:
@@ -86,6 +86,11 @@ echo "- TODO: Append task-log summaries" >> docs/reports/ai-report-${DATE}.md
 ```bash
 #!/bin/bash
 LOG_FILE="docs/task-log.md"
+if [ ! -f "$LOG_FILE" ]; then
+  echo "# ✅ AIタスク実行ログ" > "$LOG_FILE"
+  echo "| 日時 | タスク内容 | ステータス |" >> "$LOG_FILE"
+  echo "|------|------------|------------|" >> "$LOG_FILE"
+fi
 COUNT=$(grep -c '^|' "$LOG_FILE")
 
 if [ "$COUNT" -gt 50 ]; then
@@ -109,22 +114,37 @@ feedback_dir = Path("feedback/claude-tasks")
 tasks_dir = Path("tasks")
 tasks_dir.mkdir(exist_ok=True)
 
-for file in feedback_dir.glob("*.md"):
+template_file = feedback_dir / "_template.md"
+
+def parse_feedback_file(file):
     with file.open() as f:
         content = f.read()
-
     lines = content.splitlines()
-    task = {
-        "file": lines[1].split(':', 1)[1].strip(),
-        "range": lines[2].split(':', 1)[1].strip(),
-        "type": lines[3].split(':', 1)[1].strip(),
-        "importance": lines[4].split(':', 1)[1].strip(),
-        "body": lines[5].split(':', 1)[1].strip(),
-    }
+    if len(lines) < 6 or lines[0].strip() == "## 🧠 改善提案テンプレート":
+        return None
+    try:
+        task = {
+            "file": lines[1].split(':', 1)[1].strip(),
+            "range": lines[2].split(':', 1)[1].strip(),
+            "type": lines[3].split(':', 1)[1].strip(),
+            "importance": lines[4].split(':', 1)[1].strip(),
+            "body": lines[5].split(':', 1)[1].strip(),
+        }
+        return task
+    except Exception as e:
+        print(f"[WARN] {file}: parse error: {e}")
+        return None
 
-    out_path = tasks_dir / (file.stem + ".json")
-    with out_path.open("w") as f:
-        json.dump(task, f, indent=2)
+for file in feedback_dir.glob("*.md"):
+    if file == template_file:
+        continue
+    task = parse_feedback_file(file)
+    if task:
+        out_path = tasks_dir / (file.stem + ".json")
+        with out_path.open("w") as f:
+            json.dump(task, f, indent=2)
+    else:
+        print(f"[SKIP] {file}")
 ```
 
 #### 📄 `feedback/claude-tasks/_template.md`
@@ -133,57 +153,74 @@ for file in feedback_dir.glob("*.md"):
 ## 🧠 改善提案テンプレート
 
 - 対象ファイル: `パス/ファイル名`
-- 範囲: 対象行（例: 45-60行）
-- 種別: （構文改善 / 意味明確化 / 表現変更 / セキュリティ）
-- 重要度: ★★★☆☆
+- 範囲: 対象行（例: 45-60 行）
+- 種別:
+  - [ ] 構文改善
+  - [ ] 意味明確化
+  - [ ] 表現変更
+  - [ ] セキュリティ
+- 重要度:
+  - [ ] ★★★★★
+  - [ ] ★★★★☆
+  - [ ] ★★★☆☆
+  - [ ] ★★☆☆☆
+  - [ ] ★☆☆☆☆
 - 内容: ここに具体的な提案を記入します。
+
+---
+
+### 記入例
+
+- 対象ファイル: `scripts/parse-claude-feedback.py`
+- 範囲: 10-20 行
+- 種別: [x] 構文改善
+- 重要度: [x] ★★★★☆
+- 内容: 例外処理を追加し、不正なフォーマットのファイルをスキップするようにしてください。
 ```
 
 #### 📄 `docs/task-log.md`
 
 ```markdown
-# ✅ AIタスク実行ログ
+# ✅ AI タスク実行ログ
 
-| 日時 | タスク内容 | ステータス |
-|------|------------|------------|
-| 2025-06-09 | Codex 環境初期構築 | ✅ 完了 |
+| 日時       | タスク内容         | ステータス |
+| ---------- | ------------------ | ---------- |
+| 2025-06-08 | Codex 環境初期構築 | ✅ 完了    |
 ```
 
 #### 📄 `docs/metrics/ai-review-metrics.md`
 
 ```markdown
-# 📊 AI開発レビュー評価指標
+# 📊 AI 開発レビュー評価指標
 
-| 日付 | 評価者 | 修正内容 | 精度 | 実用性 | 一貫性 |
-|------|--------|----------|------|--------|--------|
-| 2025-06-09 | Claude | task-log 分割提案 | 5.0 | 4.5 | 4.8 |
+| 日付       | 評価者 | 修正内容          | 精度 | 実用性 | 一貫性 |
+| ---------- | ------ | ----------------- | ---- | ------ | ------ |
+| 2025-06-08 | Claude | task-log 分割提案 | 5.0  | 4.5    | 4.8    |
 ```
 
-#### 📄 `docs/codex-usage-guide.md`
+#### 📄 `docs/reports/ai-report-2025-06-08.md`
 
-````markdown
-# Codex実行ガイド
+```markdown
+# AI Review Report (2025-06-08)
 
-## スタート方法
-1. この `.md` ファイルを Web UI に貼り付け
-2. Codex が内容を読み取り、ファイルを生成
-3. `task-log.md` に履歴を自動記録
+- TODO: Append task-log summaries
+```
 
-## 注意点
-- 既存ファイルは `.bak` でバックアップ保存
-- スクリプト実行には `chmod +x scripts/gen-ai-report.sh` を忘れずに
-
-## GitHub ブランチ保護ルールの設定方法
-
-`main` ブランチに以下の保護ルールを適用するには、**ユーザーが以下のコマンドをローカルで実行する必要があります**。
+#### 📄 install.sh
 
 ```bash
-# REPLACE: 以下の OWNER/REPO をご自身の GitHub に置き換えてください
-gh api repos/OWNER/REPO/branches/main/protection \
-  --method PUT \
-  --field required_status_checks.strict=true \
-  --field enforce_admins=true \
-  --field required_pull_request_reviews.dismiss_stale_reviews=true \
-  --field required_pull_request_reviews.required_approving_review_count=1 \
-  --field restrictions=null
+#!/bin/bash
+# セーフインストール: 既存ディレクトリを .bak でバックアップし、ファイル展開を自動化
+set -e
+
+for dir in .github docs feedback scripts; do
+  if [ -d "$dir" ]; then
+    bak_dir="${dir}.bak.$(date +%Y%m%d%H%M%S)"
+    mv "$dir" "$bak_dir"
+    echo "Backup: $dir -> $bak_dir"
+  fi
+  mkdir -p "$dir"
+done
+
+echo "展開処理はここに追加してください（例: ファイルコピーやテンプレート展開）"
 ```
