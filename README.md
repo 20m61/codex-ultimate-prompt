@@ -30,6 +30,7 @@
 ### 1. 初期展開
 
 - このリポジトリをクローンまたは ZIP 展開し、プロジェクト直下に配置
+- 初期状態ではドキュメントのみが存在し、`.github/` や `scripts/` などのスクリプト類は含まれていません。`install.sh` または Codex で `codex-ultimate-prompt.md` を実行することで必要なファイルが生成されます。
 - `install.sh` を実行すると `.github/`, `docs/`, `feedback/`, `scripts/` などが自動生成・バックアップされます
 
 ### 2. Codex に投入

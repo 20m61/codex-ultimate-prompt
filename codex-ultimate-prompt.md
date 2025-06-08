@@ -77,8 +77,13 @@ jobs:
 echo "Generating AI review report..."
 DATE=$(date +%Y-%m-%d)
 mkdir -p docs/reports
-echo "# AI Review Report (${DATE})" > docs/reports/ai-report-${DATE}.md
-echo "- TODO: Append task-log summaries" >> docs/reports/ai-report-${DATE}.md
+REPORT="docs/reports/ai-report-${DATE}.md"
+echo "# AI Review Report (${DATE})" > "$REPORT"
+if [ -f docs/task-log.md ]; then
+  echo "## Recent Tasks" >> "$REPORT"
+  grep '^|' docs/task-log.md | tail -n 5 >> "$REPORT"
+fi
+echo "Report saved to $REPORT"
 ```
 
 #### 📄 `scripts/archive-task-log.sh`
@@ -202,8 +207,11 @@ for file in feedback_dir.glob("*.md"):
 
 ```markdown
 # AI Review Report (2025-06-08)
-
-- TODO: Append task-log summaries
+## Recent Tasks
+| 日時       | タスク内容             | ステータス |
+| ---------- | ---------------------- | ---------- |
+| 2025-06-08 | Codex 環境初期構築     | ✅ 完了    |
+| 2025-06-09 | gen-ai-report.sh 検証 | ✅ 完了    |
 ```
 
 #### 📄 install.sh
@@ -224,3 +232,11 @@ done
 
 echo "展開処理はここに追加してください（例: ファイルコピーやテンプレート展開）"
 ```
+
+### 3. 動作検証ステップ
+
+1. `chmod +x install.sh` を実行してから `./install.sh` を起動し、`.github/` `docs/` `feedback/` `scripts/` が生成されることを確認。
+2. `bash scripts/gen-ai-report.sh` を実行し、`docs/reports/` に日付入りレポートが作成されるかを確認。
+3. `bash scripts/archive-task-log.sh` を実行して `docs/task-log.md` が新規作成されること、50 行を超えると `docs/logs/` に自動アーカイブされることを確認。
+4. `python3 scripts/parse-claude-feedback.py` を実行し、`feedback/claude-tasks/` 内の Markdown が `tasks/` ディレクトリに JSON 化されるかを検証。
+5. 変更を GitHub に push し、`.github/workflows/ci.yml` の各ジョブが成功するかを確認する。
